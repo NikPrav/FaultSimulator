@@ -125,10 +125,15 @@ void readInputFile(string inputFile, vector<string> &inputString)
         string line;
         getline(file, line);
 
+        
+
         if (line.size() == 0)
         {
             break;
         }
+        // // Remove last character to stop it bugging out in linux
+        // line.pop_back();
+
         inputString.push_back(line);
     }
     file.close();
@@ -277,7 +282,7 @@ void readNetlist(string inputFile, vector<gateNode> &gates, vector<signalNode> &
             // Pushing inputs to inputSignals
             for (int i = 1; i < tokens.size(); i++)
             {
-                if (!tokens[i].compare("-1\\") || !tokens[i].compare("-1"))
+                if (!tokens[i].compare("-1\r") || !tokens[i].compare("-1"))
                     break;
                 if (tokens[i].empty())
                     continue;
@@ -289,7 +294,7 @@ void readNetlist(string inputFile, vector<gateNode> &gates, vector<signalNode> &
             // Pushing outputs to outputSignals
             for (int i = 1; i < tokens.size(); i++)
             {
-                if (!tokens[i].compare("-1\\") || !tokens[i].compare("-1"))
+                if (!tokens[i].compare("-1\r") || !tokens[i].compare("-1"))
                     break;
                 if (tokens[i].empty())
                     continue;
