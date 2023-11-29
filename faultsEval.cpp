@@ -13,7 +13,7 @@
 
 using namespace std;
 
-void evaluateFault(gateNode gate, vector<signalNode> &signals)
+void evaluateFault(gateNode gate, vector<signalNode> &signals, set<string> totalFaults)
 {
     string curFault;
     switch (gate.gateType)
@@ -25,8 +25,11 @@ void evaluateFault(gateNode gate, vector<signalNode> &signals)
 
         // Adding ip list
         signals[gate.op].faultList.insert(signals[gate.ip1].faultList.begin(), signals[gate.ip1].faultList.end());
-        // Adding op s-a fault to list
-        signals[gate.op].faultList.insert(curFault);
+
+        // Checking is curFault is in faultList
+        if (totalFaults.find(curFault) != totalFaults.end())
+            // Adding op s-a fault to list
+            signals[gate.op].faultList.insert(curFault);
         break;
     case AND:
 
@@ -37,7 +40,7 @@ void evaluateFault(gateNode gate, vector<signalNode> &signals)
             // Unity of both input lists, along with the stuck at fault
             signals[gate.op].faultList.insert(signals[gate.ip1].faultList.begin(), signals[gate.ip1].faultList.end());
             signals[gate.op].faultList.insert(signals[gate.ip2].faultList.begin(), signals[gate.ip2].faultList.end());
-            signals[gate.op].faultList.insert(curFault);
+            // signals[gate.op].faultList.insert(curFault);
         }
         else if (signals[gate.ip1].op && !signals[gate.ip2].op)
         {
@@ -45,7 +48,7 @@ void evaluateFault(gateNode gate, vector<signalNode> &signals)
             curFault = to_string(signals[gate.op].signalID) + to_string(!signals[gate.op].op);
             // Unity of both input lists, along with the stuck at fault
             set_difference(signals[gate.ip2].faultList.begin(), signals[gate.ip2].faultList.end(), signals[gate.ip1].faultList.begin(), signals[gate.ip1].faultList.end(), inserter(signals[gate.op].faultList, signals[gate.op].faultList.end()));
-            signals[gate.op].faultList.insert(curFault);
+            // signals[gate.op].faultList.insert(curFault);
         }
         else if (!signals[gate.ip1].op && signals[gate.ip2].op)
         {
@@ -53,7 +56,7 @@ void evaluateFault(gateNode gate, vector<signalNode> &signals)
             curFault = to_string(signals[gate.op].signalID) + to_string(!signals[gate.op].op);
             // Unity of both input lists, along with the stuck at fault
             set_difference(signals[gate.ip1].faultList.begin(), signals[gate.ip1].faultList.end(), signals[gate.ip2].faultList.begin(), signals[gate.ip2].faultList.end(), inserter(signals[gate.op].faultList, signals[gate.op].faultList.end()));
-            signals[gate.op].faultList.insert(curFault);
+            // signals[gate.op].faultList.insert(curFault);
         }
         else if (!signals[gate.ip1].op && !signals[gate.ip2].op)
         {
@@ -61,8 +64,13 @@ void evaluateFault(gateNode gate, vector<signalNode> &signals)
             curFault = to_string(signals[gate.op].signalID) + to_string(!signals[gate.op].op);
             // Unity of both input lists, along with the stuck at fault
             set_intersection(signals[gate.ip1].faultList.begin(), signals[gate.ip1].faultList.end(), signals[gate.ip2].faultList.begin(), signals[gate.ip2].faultList.end(), inserter(signals[gate.op].faultList, signals[gate.op].faultList.end()));
-            signals[gate.op].faultList.insert(curFault);
+            // signals[gate.op].faultList.insert(curFault);
         }
+
+        // Checking is curFault is in faultList
+        if (totalFaults.find(curFault) != totalFaults.end())
+            // Adding op s-a fault to list
+            signals[gate.op].faultList.insert(curFault);
 
         break;
     case OR:
@@ -73,7 +81,7 @@ void evaluateFault(gateNode gate, vector<signalNode> &signals)
             // Unity of both input lists, along with the stuck at fault
             signals[gate.op].faultList.insert(signals[gate.ip1].faultList.begin(), signals[gate.ip1].faultList.end());
             signals[gate.op].faultList.insert(signals[gate.ip2].faultList.begin(), signals[gate.ip2].faultList.end());
-            signals[gate.op].faultList.insert(curFault);
+            // signals[gate.op].faultList.insert(curFault);
         }
         else if (!signals[gate.ip1].op && signals[gate.ip2].op)
         {
@@ -81,7 +89,7 @@ void evaluateFault(gateNode gate, vector<signalNode> &signals)
             curFault = to_string(signals[gate.op].signalID) + to_string(!signals[gate.op].op);
             // Unity of both input lists, along with the stuck at fault
             set_difference(signals[gate.ip2].faultList.begin(), signals[gate.ip2].faultList.end(), signals[gate.ip1].faultList.begin(), signals[gate.ip1].faultList.end(), inserter(signals[gate.op].faultList, signals[gate.op].faultList.end()));
-            signals[gate.op].faultList.insert(curFault);
+            // signals[gate.op].faultList.insert(curFault);
         }
         else if (signals[gate.ip1].op && !signals[gate.ip2].op)
         {
@@ -89,7 +97,7 @@ void evaluateFault(gateNode gate, vector<signalNode> &signals)
             curFault = to_string(signals[gate.op].signalID) + to_string(!signals[gate.op].op);
             // Unity of both input lists, along with the stuck at fault
             set_difference(signals[gate.ip1].faultList.begin(), signals[gate.ip1].faultList.end(), signals[gate.ip2].faultList.begin(), signals[gate.ip2].faultList.end(), inserter(signals[gate.op].faultList, signals[gate.op].faultList.end()));
-            signals[gate.op].faultList.insert(curFault);
+            // signals[gate.op].faultList.insert(curFault);
         }
         else if (signals[gate.ip1].op && signals[gate.ip2].op)
         {
@@ -97,8 +105,12 @@ void evaluateFault(gateNode gate, vector<signalNode> &signals)
             curFault = to_string(signals[gate.op].signalID) + to_string(!signals[gate.op].op);
             // Unity of both input lists, along with the stuck at fault
             set_intersection(signals[gate.ip1].faultList.begin(), signals[gate.ip1].faultList.end(), signals[gate.ip2].faultList.begin(), signals[gate.ip2].faultList.end(), inserter(signals[gate.op].faultList, signals[gate.op].faultList.end()));
-            signals[gate.op].faultList.insert(curFault);
+            // signals[gate.op].faultList.insert(curFault);
         }
+        // Checking is curFault is in faultList
+        if (totalFaults.find(curFault) != totalFaults.end())
+            // Adding op s-a fault to list
+            signals[gate.op].faultList.insert(curFault);
         break;
     case XOR:
         signals[gate.op].op = signals[gate.ip1].op ^ signals[gate.ip2].op;
@@ -114,7 +126,7 @@ void evaluateFault(gateNode gate, vector<signalNode> &signals)
             // Unity of both input lists, along with the stuck at fault
             signals[gate.op].faultList.insert(signals[gate.ip1].faultList.begin(), signals[gate.ip1].faultList.end());
             signals[gate.op].faultList.insert(signals[gate.ip2].faultList.begin(), signals[gate.ip2].faultList.end());
-            signals[gate.op].faultList.insert(curFault);
+            // signals[gate.op].faultList.insert(curFault);
         }
         else if (signals[gate.ip1].op && !signals[gate.ip2].op)
         {
@@ -122,7 +134,7 @@ void evaluateFault(gateNode gate, vector<signalNode> &signals)
             curFault = to_string(signals[gate.op].signalID) + to_string(!signals[gate.op].op);
             // Unity of both input lists, along with the stuck at fault
             set_difference(signals[gate.ip2].faultList.begin(), signals[gate.ip2].faultList.end(), signals[gate.ip1].faultList.begin(), signals[gate.ip1].faultList.end(), inserter(signals[gate.op].faultList, signals[gate.op].faultList.end()));
-            signals[gate.op].faultList.insert(curFault);
+            // signals[gate.op].faultList.insert(curFault);
         }
         else if (!signals[gate.ip1].op && signals[gate.ip2].op)
         {
@@ -130,7 +142,7 @@ void evaluateFault(gateNode gate, vector<signalNode> &signals)
             curFault = to_string(signals[gate.op].signalID) + to_string(!signals[gate.op].op);
             // Unity of both input lists, along with the stuck at fault
             set_difference(signals[gate.ip1].faultList.begin(), signals[gate.ip1].faultList.end(), signals[gate.ip2].faultList.begin(), signals[gate.ip2].faultList.end(), inserter(signals[gate.op].faultList, signals[gate.op].faultList.end()));
-            signals[gate.op].faultList.insert(curFault);
+            // signals[gate.op].faultList.insert(curFault);
         }
         else if (!signals[gate.ip1].op && !signals[gate.ip2].op)
         {
@@ -138,8 +150,12 @@ void evaluateFault(gateNode gate, vector<signalNode> &signals)
             curFault = to_string(signals[gate.op].signalID) + to_string(!signals[gate.op].op);
             // Unity of both input lists, along with the stuck at fault
             set_intersection(signals[gate.ip1].faultList.begin(), signals[gate.ip1].faultList.end(), signals[gate.ip2].faultList.begin(), signals[gate.ip2].faultList.end(), inserter(signals[gate.op].faultList, signals[gate.op].faultList.end()));
-            signals[gate.op].faultList.insert(curFault);
+            // signals[gate.op].faultList.insert(curFault);
         }
+        // Checking is curFault is in faultList
+        if (totalFaults.find(curFault) != totalFaults.end())
+            // Adding op s-a fault to list
+            signals[gate.op].faultList.insert(curFault);
         break;
     case NOR:
         if (!signals[gate.ip1].op && !signals[gate.ip2].op)
@@ -149,7 +165,7 @@ void evaluateFault(gateNode gate, vector<signalNode> &signals)
             // Unity of both input lists, along with the stuck at fault
             signals[gate.op].faultList.insert(signals[gate.ip1].faultList.begin(), signals[gate.ip1].faultList.end());
             signals[gate.op].faultList.insert(signals[gate.ip2].faultList.begin(), signals[gate.ip2].faultList.end());
-            signals[gate.op].faultList.insert(curFault);
+            // signals[gate.op].faultList.insert(curFault);
         }
         else if (!signals[gate.ip1].op && signals[gate.ip2].op)
         {
@@ -157,7 +173,7 @@ void evaluateFault(gateNode gate, vector<signalNode> &signals)
             curFault = to_string(signals[gate.op].signalID) + to_string(!signals[gate.op].op);
             // Unity of both input lists, along with the stuck at fault
             set_difference(signals[gate.ip2].faultList.begin(), signals[gate.ip2].faultList.end(), signals[gate.ip1].faultList.begin(), signals[gate.ip1].faultList.end(), inserter(signals[gate.op].faultList, signals[gate.op].faultList.end()));
-            signals[gate.op].faultList.insert(curFault);
+            // signals[gate.op].faultList.insert(curFault);
         }
         else if (signals[gate.ip1].op && !signals[gate.ip2].op)
         {
@@ -165,7 +181,7 @@ void evaluateFault(gateNode gate, vector<signalNode> &signals)
             curFault = to_string(signals[gate.op].signalID) + to_string(!signals[gate.op].op);
             // Unity of both input lists, along with the stuck at fault
             set_difference(signals[gate.ip1].faultList.begin(), signals[gate.ip1].faultList.end(), signals[gate.ip2].faultList.begin(), signals[gate.ip2].faultList.end(), inserter(signals[gate.op].faultList, signals[gate.op].faultList.end()));
-            signals[gate.op].faultList.insert(curFault);
+            // signals[gate.op].faultList.insert(curFault);
         }
         else if (signals[gate.ip1].op && signals[gate.ip2].op)
         {
@@ -173,8 +189,12 @@ void evaluateFault(gateNode gate, vector<signalNode> &signals)
             curFault = to_string(signals[gate.op].signalID) + to_string(!signals[gate.op].op);
             // Unity of both input lists, along with the stuck at fault
             set_intersection(signals[gate.ip1].faultList.begin(), signals[gate.ip1].faultList.end(), signals[gate.ip2].faultList.begin(), signals[gate.ip2].faultList.end(), inserter(signals[gate.op].faultList, signals[gate.op].faultList.end()));
-            signals[gate.op].faultList.insert(curFault);
+            // signals[gate.op].faultList.insert(curFault);
         }
+        // Checking is curFault is in faultList
+        if (totalFaults.find(curFault) != totalFaults.end())
+            // Adding op s-a fault to list
+            signals[gate.op].faultList.insert(curFault);
         break;
     case BUF:
         // Considering s-a for op signal
@@ -182,8 +202,10 @@ void evaluateFault(gateNode gate, vector<signalNode> &signals)
 
         // Adding ip list
         signals[gate.op].faultList.insert(signals[gate.ip1].faultList.begin(), signals[gate.ip1].faultList.end());
-        // Adding op s-a fault to list
-        signals[gate.op].faultList.insert(curFault);
+        // Checking is curFault is in faultList
+        if (totalFaults.find(curFault) != totalFaults.end())
+            // Adding op s-a fault to list
+            signals[gate.op].faultList.insert(curFault);
         break;
     }
 }
@@ -274,8 +296,6 @@ void readFaultlist(string inputFile, set<string> &totalFaults)
         getline(file, line);
         vector<string> tokens;
 
-        
-
         if (line.size() == 0)
         {
             break;
@@ -290,7 +310,7 @@ void readFaultlist(string inputFile, set<string> &totalFaults)
         fault += to_string(stoi(tokens[0]) - 1);
         fault += tokens[1];
 
-         totalFaults.insert(fault);
+        totalFaults.insert(fault);
     }
     file.close();
 }

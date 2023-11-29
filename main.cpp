@@ -73,8 +73,8 @@ int main(int argc, char *argv[])
 
     // Keeping note of faults covered
     set<string> coveredFaults;
-    set<string> validFaults;
-    set<string> totalValidFaults;
+    // set<string> validFaults;
+    // set<string> totalValidFaults;
 
     // Total Possible faults
     set<string> totalFaults;
@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
         definedSignals = inputSignals;
         vector<int> evaluatedGates;
         // Initialising input signals with inputs
-        assignValues(input, signals, inputSignals);
+        assignValues(input, signals, inputSignals, totalFaults);
 
         // Pushing gate to stack whose inputs are defined
         addToStack(definedSignals, gateStack, gates, evaluatedGates);
@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
             evaluateGate(gates[currentGate], signals);
 
             // Evaluating fault listof output of current gate
-            evaluateFault(gates[currentGate], signals);
+            evaluateFault(gates[currentGate], signals, totalFaults);
 
             // adding the output signals to the list of defined signals
             definedSignals.push_back(gates[currentGate].op);
@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
         // break program if coverage is 100 percent
 
         // Check what all faults in defined faults are covered
-        set_intersection(coveredFaults.begin(), coveredFaults.end(), totalFaults.begin(), totalFaults.end(), inserter(validFaults, validFaults.end()));
+        // set_intersection(coveredFaults.begin(), coveredFaults.end(), totalFaults.begin(), totalFaults.end(), inserter(validFaults, validFaults.end()));
 
 
         if (!isRandom)
@@ -168,7 +168,7 @@ int main(int argc, char *argv[])
             std::cout << "For input " << inputString[i] << "\n";
             std::cout << "###### Faults Covered ####### \n";
             // Print Faults covered by input
-            printFaults(validFaults);
+            printFaults(coveredFaults);
         }
         // Compare faults to total number of faults and calcuate coverage
         totalCoveredFaults.insert(coveredFaults.begin(), coveredFaults.end());
@@ -182,8 +182,8 @@ int main(int argc, char *argv[])
             //  validFaults is intersection of converedFaults and totalFaults
 
             // list validFaults =
-            set_intersection(totalCoveredFaults.begin(), totalCoveredFaults.end(), totalFaults.begin(), totalFaults.end(), inserter(validFaults, validFaults.end()));
-            float coverage = validFaults.size() * 100.0 / totalFaults.size();
+            // set_intersection(totalCoveredFaults.begin(), totalCoveredFaults.end(), totalFaults.begin(), totalFaults.end(), inserter(validFaults, validFaults.end()));
+            float coverage = totalCoveredFaults.size() * 100.0 / totalFaults.size();
             std::cout << "Coverage percentage:" << coverage << "\n";
             coverageValues.push_back(coverage);
             if (coverage >= 90)
@@ -196,9 +196,9 @@ int main(int argc, char *argv[])
         }
     }
 
-    set_intersection(totalCoveredFaults.begin(), totalCoveredFaults.end(), totalFaults.begin(), totalFaults.end(), inserter(validFaults, validFaults.end()));
+    // set_intersection(totalCoveredFaults.begin(), totalCoveredFaults.end(), totalFaults.begin(), totalFaults.end(), inserter(validFaults, validFaults.end()));
 
-    float coverage = validFaults.size() * 100.0 / totalFaults.size();
+    float coverage = totalCoveredFaults.size() * 100.0 / totalFaults.size();
 
     std::cout << "Coverage Percentage:" << coverage << "\n";
 

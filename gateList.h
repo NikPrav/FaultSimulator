@@ -61,7 +61,7 @@ void addToSignalList(int signal, int gateID, vector<signalNode> &signals);
 
 void readInputFile(string inputFile, vector<string> &inputString);
 
-void assignValues(string inputs, vector<signalNode> &signals, vector<int> inputSignals);
+void assignValues(string inputs, vector<signalNode> &signals, vector<int> inputSignals, set<string> &totalFaults);
 
 void addToStack(vector<int> inputSignals, vector<int> &gateStack, vector<gateNode> gates, vector<int> &evaluatedGates);
 

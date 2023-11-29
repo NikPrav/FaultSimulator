@@ -125,8 +125,6 @@ void readInputFile(string inputFile, vector<string> &inputString)
         string line;
         getline(file, line);
 
-        
-
         if (line.size() == 0)
         {
             break;
@@ -139,7 +137,7 @@ void readInputFile(string inputFile, vector<string> &inputString)
     file.close();
 }
 
-void assignValues(string inputs, vector<signalNode> &signals, vector<int> inputSignals)
+void assignValues(string inputs, vector<signalNode> &signals, vector<int> inputSignals, set<string> &totalFaults)
 {
     string fault;
     // Iterate through inputSignals list and assign values according to inputs
@@ -149,8 +147,9 @@ void assignValues(string inputs, vector<signalNode> &signals, vector<int> inputS
         // Assigning value to signal
         // for (int j = 0; j < signals.size(); ++j)
         // {
-            signals[inputSignals[i]].op = inputs[i] - '0';
-            fault = to_string(signals[inputSignals[i]].signalID) + to_string(!(inputs[i] - '0'));
+        signals[inputSignals[i]].op = inputs[i] - '0';
+        fault = to_string(signals[inputSignals[i]].signalID) + to_string(!(inputs[i] - '0'));
+        if (totalFaults.find(fault) != totalFaults.end())
             signals[inputSignals[i]].faultList.insert(fault);
         // }
     }

@@ -11,7 +11,7 @@
 
 #include "gateList.h"
 
-void evaluateFault(gateNode gate, vector<signalNode> &signals);
+void evaluateFault(gateNode gate, vector<signalNode> &signals, set<string> totalFaults);
 
 void findTotalFaults(set<string> &totalFaults, vector<signalNode> &signals);
 
