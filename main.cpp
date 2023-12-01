@@ -13,6 +13,7 @@
 
 #include "gateList.h"
 #include "faultsEval.h"
+#include "PODEM.h"
 
 using namespace std;
 
@@ -75,6 +76,14 @@ int main(int argc, char *argv[])
     set<string> coveredFaults;
     // set<string> validFaults;
     // set<string> totalValidFaults;
+
+    bool podemRun = true;
+    set<int> Dfrontier;
+    if (podemRun){
+        initialiseSignals(signals);
+        PODEM(8, 0, gates, signals, inputSignals, outputSignals, Dfrontier);
+        return (0);
+    }
 
     // Total Possible faults
     set<string> totalFaults;

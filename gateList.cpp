@@ -8,7 +8,18 @@
 #include <set>
 #include <cstring>
 
+// #include "PODEM.h"
+
 using namespace std;
+
+enum logicValues
+{
+    logicLow,
+    logicHigh,
+    logicD,
+    logicDbar,
+    logicX
+};
 
 struct fault
 {
@@ -23,10 +34,10 @@ enum gateTypes
     OR,
     NAND,
     NOR,
+    BUF,
     NOT,
     XOR,
     XNOR,
-    BUF,
     INPUT,
     OUTPUT
 };
@@ -55,6 +66,35 @@ struct less_than_key_signalNode
         return (struct1.signalID < struct2.signalID);
     }
 };
+
+int logicAND[5][5] = {{0, 0, 0, 0, 0},
+                      {0, 1, 2, 3, 4},
+                      {0, 2, 2, 0, 4},
+                      {0, 3, 0, 3, 4},
+                      {0, 4, 4, 4, 4}};
+
+int logicOR[5][5] = {{0, 1, 2, 3, 4},
+                     {1, 1, 1, 1, 1},
+                     {2, 1, 2, 1, 4},
+                     {3, 1, 1, 3, 4},
+                     {4, 1, 4, 4, 4}};
+
+int logicNAND[5][5] = {{1, 1, 1, 1, 1},
+                       {1, 0, 3, 2, 4},
+                       {1, 3, 3, 1, 4},
+                       {1, 2, 1, 2, 4},
+                       {1, 4, 4, 4, 4}};
+
+int logicNOR[5][5] = {{1, 0, 3, 2, 4},
+                      {0, 0, 0, 0, 0},
+                      {3, 0, 3, 0, 4},
+                      {2, 0, 0, 2, 4},
+                      {4, 0, 4, 4, 4}};
+
+int logicNOT[5] = {1, 0, 3, 2, 4};
+
+int logicControl[6] = {1, 0, 1, 0, 1, 0};
+int logicInversion[6] = {1, 0, 0, 1, 1, 0};
 
 bool split(string inputString, vector<string> &tokens, char delimiter)
 {
@@ -110,6 +150,7 @@ void addToSignalList(int signal, int gateID, vector<signalNode> &signals)
     // if it does not, create new signalNode and add gateID
     signalNode newSignal;
     newSignal.signalID = signal;
+    newSignal.op = logicX;
     newSignal.gateIDs.push_back(gateID);
 
     signals.push_back(newSignal);
@@ -155,7 +196,7 @@ void assignValues(string inputs, vector<signalNode> &signals, vector<int> inputS
     }
 }
 
-void addToStack(vector<int> inputSignals, vector<int> &gateStack, vector<gateNode> gates, vector<int> &evaluatedGates)
+void addToStack(vector<int> &inputSignals, vector<int> &gateStack, vector<gateNode> gates, vector<int> &evaluatedGates)
 {
     // Going through all gates
     for (int i = 0; i < gates.size(); ++i)
@@ -175,6 +216,7 @@ void addToStack(vector<int> inputSignals, vector<int> &gateStack, vector<gateNod
         case INV:
         case BUF:
         case NOT:
+            
             // Check for ip1
             if (find(inputSignals.begin(), inputSignals.end(), gates[i].ip1) != inputSignals.end())
             {
@@ -185,14 +227,20 @@ void addToStack(vector<int> inputSignals, vector<int> &gateStack, vector<gateNod
             break;
         default:
             // Chec for both ip1 and ip2
-            if (std::find(inputSignals.begin(), inputSignals.end(), gates[i].ip1) != inputSignals.end())
+            auto iter1 = std::find(inputSignals.begin(), inputSignals.end(), gates[i].ip1);
+            auto iter2 = std::find(inputSignals.begin(), inputSignals.end(), gates[i].ip2); 
+            if (( iter1 != inputSignals.end()))
             {
-                if (std::find(inputSignals.begin(), inputSignals.end(), gates[i].ip2) != inputSignals.end())
-                {
-                    gateStack.push_back(i);
-                    // adding to evaluated list to ensure it is not added to stack again
-                    evaluatedGates.push_back(i);
-                }
+
+                gateStack.push_back(i);
+                inputSignals.erase(iter1);
+                // adding to evaluated list to ensure it is not added to stack again
+                // evaluatedGates.push_back(i);
+            }
+            else if (iter2 != inputSignals.end())
+            {
+                gateStack.push_back(i);
+                inputSignals.erase(iter2);
             }
         }
     }
@@ -204,13 +252,13 @@ void evaluateGate(gateNode gate, vector<signalNode> &signals)
     {
     case INV:
     case NOT:
-        signals[gate.op].op = !signals[gate.ip1].op;
+        signals[gate.op].op = logicNOT[signals[gate.ip1].op];
         break;
     case AND:
-        signals[gate.op].op = signals[gate.ip1].op & signals[gate.ip2].op;
+        signals[gate.op].op = logicAND[signals[gate.ip1].op][signals[gate.ip2].op];
         break;
     case OR:
-        signals[gate.op].op = signals[gate.ip1].op | signals[gate.ip2].op;
+        signals[gate.op].op = logicOR[signals[gate.ip1].op][signals[gate.ip2].op];
         break;
     case XOR:
         signals[gate.op].op = signals[gate.ip1].op ^ signals[gate.ip2].op;
@@ -219,10 +267,10 @@ void evaluateGate(gateNode gate, vector<signalNode> &signals)
         signals[gate.op].op = !(signals[gate.ip1].op ^ signals[gate.ip2].op);
         break;
     case NAND:
-        signals[gate.op].op = !(signals[gate.ip1].op & signals[gate.ip2].op);
+        signals[gate.op].op = logicNAND[signals[gate.ip1].op][signals[gate.ip2].op];
         break;
     case NOR:
-        signals[gate.op].op = !(signals[gate.ip1].op | signals[gate.ip2].op);
+        signals[gate.op].op = logicNOR[signals[gate.ip1].op][signals[gate.ip2].op];
         break;
     case BUF:
         signals[gate.op].op = signals[gate.ip1].op;

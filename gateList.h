@@ -9,8 +9,17 @@
 #include <algorithm>
 #include <set>
 
+
 using namespace std;
 
+enum logicValues
+{
+    logicLow,
+    logicHigh,
+    logicD,
+    logicDbar,
+    logicX
+};
 
 enum gateTypes
 {
@@ -53,6 +62,15 @@ struct less_than_key_signalNode
     }
 };
 
+extern int logicOR[5][5];
+extern int logicNAND[5][5];
+extern int logicAND[5][5];
+extern int logicNOR[5][5];
+extern int logicNOT[5];
+extern int logicControl[6];
+extern int logicInversion[6];
+
+
 bool split(string inputString, vector<string> &tokens, char delimiter);
 
 int gateType(string inputString);
@@ -63,7 +81,7 @@ void readInputFile(string inputFile, vector<string> &inputString);
 
 void assignValues(string inputs, vector<signalNode> &signals, vector<int> inputSignals, set<string> &totalFaults);
 
-void addToStack(vector<int> inputSignals, vector<int> &gateStack, vector<gateNode> gates, vector<int> &evaluatedGates);
+void addToStack(vector<int> &inputSignals, vector<int> &gateStack, vector<gateNode> gates, vector<int> &evaluatedGates);
 
 void evaluateGate(gateNode gate, vector<signalNode> &signals);
 
