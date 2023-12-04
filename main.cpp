@@ -198,9 +198,9 @@ void faultSimRun(vector<gateNode> gates, vector<signalNode> signals, vector<stri
     }
 
     if (!faultCoverage)
-        cout << "Some input vectors unable to cover faults";
+        cout << "Some input vectors unable to cover faults \n";
     else
-        cout << "All input vectors cover fault";
+        cout << "All input vectors cover fault \n";
 }
 
 int main(int argc, char *argv[])
@@ -222,7 +222,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        cout << "isPodem\n";
+        // cout << "isPodem\n";
         faultFile = argv[3];
         if (argc > 4)
             checkAfterPodem = stoi(argv[4]);

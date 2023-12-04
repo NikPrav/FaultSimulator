@@ -11,7 +11,7 @@ Compile the code using the command:
 
 The command line args are:
 
-`\out "path\to\netlist" isPodemFlag "path\to\inputs" "path\to\store\results" isRandomFlag isFaultFileFlag "path\to\fault_file"`
+`/out "path/to/netlist" isPodemFlag "path/to/inputs" "path/to/store/results" isRandomFlag isFaultFileFlag "path/to/fault_file"`
 
 The simulator can be used in two ways
 
@@ -24,11 +24,17 @@ To run PODEM, you need the following files
 
 PODEM can be run using the following parameters. The important thing to note here is to set the isPodem Flag to 1.
 
-`\out "path\to\netlist" 1 "path\to\fault_file"`
+`/out "path/to/netlist" 1 "path/to/fault_file"`
 
 eg:
 
 `./out files/s298f_2.txt 1 faults/s298f_2.txt`
+
+To verify if all tests cover the give fault, an additional flag can be added at the end, checkAfterPodem
+
+`./out files/s298f_2.txt 1 faults/s298f_2.txt 1`
+
+This will go through all possible test vectors, and verify that the fault is indeed caught by the simulator
 
 For an explanation of the flags and parameters, please see below
 
@@ -45,7 +51,7 @@ Optionally, by setting some flags, you can also include the following
 
 To run simulation, the following command can be used
 
-`\out "path\to\netlist" 0 "path\to\inputs" "path\to\store\results" isRandomFlag isFaultFileFlag "path\to\fault_file"`
+`/out "path/to/netlist" 0 "path/to/inputs" "path/to/store/results" isRandomFlag isFaultFileFlag "path/to/fault_file"`
 
 eg:
 
