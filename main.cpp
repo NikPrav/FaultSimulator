@@ -24,6 +24,8 @@ string outputFile;
 
 int isRandom;
 int isFaultFile;
+int isPodem;
+int checkAfterPodem;
 
 void writeToFile(vector<float> coverageValues, string fileName)
 {
@@ -38,7 +40,7 @@ void writeToFile(vector<float> coverageValues, string fileName)
     file.close();
 }
 
-void faultSimRun(vector<gateNode> gates, vector<signalNode> signals, vector<string> inputString, vector<int> inputSignals, vector<int> outputSignals, set<string> totalFaults)
+void faultSimRun(vector<gateNode> gates, vector<signalNode> signals, vector<string> inputString, vector<int> inputSignals, vector<int> outputSignals, set<string> totalFaults, string faultAt = "")
 {
     // iterating through all values of inputs
     vector<int> gateStack, definedSignals;
@@ -53,8 +55,9 @@ void faultSimRun(vector<gateNode> gates, vector<signalNode> signals, vector<stri
     int totalInputs = 0;
 
     bool completeCoverage = false;
+    bool faultCoverage = true;
     // Populate valid list
-    if (isRandom)
+    if (isRandom && !isPodem)
     {
         totalInputs = pow(2, inputSignals.size());
         createValidInputsList(validList, totalInputs);
@@ -68,7 +71,7 @@ void faultSimRun(vector<gateNode> gates, vector<signalNode> signals, vector<stri
         string input;
 
         // generate inputString from validList via isRandom
-        if (isRandom)
+        if (isRandom && !isPodem)
         {
             input = generateRandomInput(inputSignals, validList);
             std::cout << "Generating input " << i << " out of " << totalInputs << "\n";
@@ -118,12 +121,29 @@ void faultSimRun(vector<gateNode> gates, vector<signalNode> signals, vector<stri
             coveredFaults.insert(signals[signal].faultList.begin(), signals[signal].faultList.end());
         }
 
+        // If running after PODEM, check if fault has been covered by input
+        if (isPodem)
+        {
+            string x = faultAt;
+            string sa = to_string(x.back() - '0');
+            x.pop_back();
+            if (coveredFaults.find(faultAt) != coveredFaults.end())
+            {
+                // cout << input << " covers " << stoi(x) + 1 << " stuck at " << sa << endl;
+            }
+            else
+            {
+                faultCoverage = false;
+                // cout << input << " does not cover " << stoi(x) + 1 << " stuck at " << sa << endl;
+            }
+        }
+
         // break program if coverage is 100 percent
 
         // Check what all faults in defined faults are covered
         // set_intersection(coveredFaults.begin(), coveredFaults.end(), totalFaults.begin(), totalFaults.end(), inserter(validFaults, validFaults.end()));
 
-        if (!isRandom)
+        if (!isRandom && !isPodem)
         {
             std::cout << "For input " << inputString[i] << "\n";
             std::cout << "###### Faults Covered ####### \n";
@@ -135,7 +155,7 @@ void faultSimRun(vector<gateNode> gates, vector<signalNode> signals, vector<stri
         outputString.push_back(output);
         coveredFaults.clear();
 
-        if (isRandom)
+        if (isRandom && !isPodem)
         {
             //  validFaults is intersection of converedFaults and totalFaults
 
@@ -157,10 +177,10 @@ void faultSimRun(vector<gateNode> gates, vector<signalNode> signals, vector<stri
     // set_intersection(totalCoveredFaults.begin(), totalCoveredFaults.end(), totalFaults.begin(), totalFaults.end(), inserter(validFaults, validFaults.end()));
 
     float coverage = totalCoveredFaults.size() * 100.0 / totalFaults.size();
+    if (!isPodem)
+        std::cout << "Coverage Percentage:" << coverage << "\n";
 
-    std::cout << "Coverage Percentage:" << coverage << "\n";
-
-    if (isRandom)
+    if (isRandom && !isPodem)
     {
         if (!completeCoverage)
         {
@@ -171,21 +191,27 @@ void faultSimRun(vector<gateNode> gates, vector<signalNode> signals, vector<stri
             printFaults(unreachableFaults);
         }
     }
-    else
+    else if (!isPodem)
     {
         std::cout << "Saving Output to file:" << outputFile << "\n";
         writeOutputFile(outputFile, outputString);
     }
+
+    if (!faultCoverage)
+        cout << "Some input vectors unable to cover faults";
+    else
+        cout << "All input vectors cover fault";
 }
 
 int main(int argc, char *argv[])
 {
 
     netlistFile = argv[1];
-    int isPodem = stoi(argv[2]);
+    isPodem = stoi(argv[2]);
     isRandom = 0;
     isFaultFile = 0;
     string faultFile;
+    checkAfterPodem = 0;
 
     if (!isPodem)
     {
@@ -198,6 +224,8 @@ int main(int argc, char *argv[])
     {
         cout << "isPodem\n";
         faultFile = argv[3];
+        if (argc > 4)
+            checkAfterPodem = stoi(argv[4]);
         // isRandom = stoi(argv[5]);
         // isFaultFile = stoi(argv[6]);
     }
@@ -222,7 +250,7 @@ int main(int argc, char *argv[])
     // Reading Netlist
     readNetlist(netlistFile, gates, signals, inputSignals, outputSignals);
 
-    sort(signals.begin(), signals.end(), less_than_key_signalNode());
+    std::sort(signals.begin(), signals.end(), less_than_key_signalNode());
 
     definedSignals = inputSignals;
 
@@ -245,7 +273,11 @@ int main(int argc, char *argv[])
             if (isPODEMSuccess)
             {
                 cout << "For fault " << stoi(fault) + 1 << " stuck at " << sa << " the test vector is:";
-                printTestVector(gates, signals, inputSignals);
+                vector<string> testInputs;
+                testInputs = printTestVector(gates, signals, inputSignals);
+
+                if (checkAfterPodem)
+                    faultSimRun(gates, signals, testInputs, inputSignals, outputSignals, totalFaults, *it);
             }
             else
             {
@@ -253,7 +285,7 @@ int main(int argc, char *argv[])
             }
         }
 
-        return (0);
+        // return (0);
     }
 
     // Reading inputs
@@ -273,9 +305,10 @@ int main(int argc, char *argv[])
     else
         findTotalFaults(totalFaults, signals);
 
-    // set<string> totalCoveredFaults;
+    // faultAt = "00";
 
-    if (!isPodem){
+    if (!isPodem)
+    {
         faultSimRun(gates, signals, inputString, inputSignals, outputSignals, totalFaults);
     }
 

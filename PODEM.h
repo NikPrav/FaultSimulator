@@ -26,4 +26,4 @@ void initialiseSignals(vector<signalNode> &signals);
 
 void addToDFrontier(vector<gateNode> &gates, vector<signalNode> &signals, set<int> &Dfrontier); 
 
-void printTestVector(vector<gateNode> gates, vector<signalNode> signals, vector<int> inputSignals);
+vector<string> printTestVector(vector<gateNode> gates, vector<signalNode> signals, vector<int> inputSignals);

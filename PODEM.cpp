@@ -213,11 +213,12 @@ void addToStackPODEM(vector<int> &inputSignals, vector<int> &gateStack, vector<g
 
 void Imply(int signal, int value, vector<gateNode> &gates, vector<signalNode> &signals, set<int> &Dfrontier, int faultAt, int faultValue)
 {
-    vector<int> definedSignals;    
+    vector<int> definedSignals;
     vector<int> inputSignals(1, signal);
     set<string> totalFaults;
 
-    if (signal == faultAt){
+    if (signal == faultAt)
+    {
         value = 3 - value;
     }
     string input = to_string(value);
@@ -319,14 +320,44 @@ bool PODEM(int faultAt, int faultValue, vector<gateNode> &gates, vector<signalNo
     return false;
 }
 
-void printTestVector(vector<gateNode> gates, vector<signalNode> signals, vector<int> inputSignals)
+vector<string> printTestVector(vector<gateNode> gates, vector<signalNode> signals, vector<int> inputSignals)
 {
     string testVector = "";
     string convToSignal[5] = {"0", "1", "1", "0", "X"};
+    vector<string> testInputs;
     for (auto signal : inputSignals)
     {
+        vector<string> temp;
         testVector += convToSignal[signals[signal].op];
+        if (signals[signal].op == 4)
+        {
+            for (auto &inputs : testInputs)
+            {
+                temp.push_back(inputs + "0");
+                temp.push_back(inputs + "1");
+            }
+            if (testInputs.empty())
+            {
+                temp.push_back("0");
+                temp.push_back("1");
+            }
+            testInputs = temp;
+        }
+        else
+        {
+            for (auto &inputs : testInputs)
+            {
+                inputs = inputs + convToSignal[signals[signal].op];
+            }
+
+            if (testInputs.empty())
+            {
+                testInputs.push_back(convToSignal[signals[signal].op]);
+            }
+        }
     }
 
     std::cout << testVector << std::endl;
+
+    return testInputs;
 }
