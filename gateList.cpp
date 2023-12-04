@@ -119,7 +119,7 @@ bool split(string inputString, vector<string> &tokens, char delimiter)
 
 int gateType(string inputString)
 {
-    vector<string> allowedGates{"INV", "AND", "OR", "NAND", "NOR", "NOT", "XOR", "XNOR", "BUF", "INPUT", "OUTPUT"};
+    vector<string> allowedGates{"INV", "AND", "OR", "NAND", "NOR", "BUF", "NOT", "XOR", "XNOR",  "INPUT", "OUTPUT"};
 
     for (int i = 0; i < allowedGates.size(); ++i)
     {
@@ -199,7 +199,7 @@ void assignValues(string inputs, vector<signalNode> &signals, vector<int> inputS
 void addToStack(vector<int> &inputSignals, vector<int> &gateStack, vector<gateNode> gates, vector<int> &evaluatedGates)
 {
     // Going through all gates
-    for (int i = 0; i < gates.size(); ++i)
+     for (int i = 0; i < gates.size(); ++i)
     {
         // bool inputsDefined = false;
 
@@ -216,7 +216,6 @@ void addToStack(vector<int> &inputSignals, vector<int> &gateStack, vector<gateNo
         case INV:
         case BUF:
         case NOT:
-            
             // Check for ip1
             if (find(inputSignals.begin(), inputSignals.end(), gates[i].ip1) != inputSignals.end())
             {
@@ -227,20 +226,14 @@ void addToStack(vector<int> &inputSignals, vector<int> &gateStack, vector<gateNo
             break;
         default:
             // Chec for both ip1 and ip2
-            auto iter1 = std::find(inputSignals.begin(), inputSignals.end(), gates[i].ip1);
-            auto iter2 = std::find(inputSignals.begin(), inputSignals.end(), gates[i].ip2); 
-            if (( iter1 != inputSignals.end()))
+            if (std::find(inputSignals.begin(), inputSignals.end(), gates[i].ip1) != inputSignals.end())
             {
-
-                gateStack.push_back(i);
-                inputSignals.erase(iter1);
-                // adding to evaluated list to ensure it is not added to stack again
-                // evaluatedGates.push_back(i);
-            }
-            else if (iter2 != inputSignals.end())
-            {
-                gateStack.push_back(i);
-                inputSignals.erase(iter2);
+                if (std::find(inputSignals.begin(), inputSignals.end(), gates[i].ip2) != inputSignals.end())
+                {
+                    gateStack.push_back(i);
+                    // adding to evaluated list to ensure it is not added to stack again
+                    evaluatedGates.push_back(i);
+                }
             }
         }
     }
@@ -295,7 +288,7 @@ void readNetlist(string inputFile, vector<gateNode> &gates, vector<signalNode> &
 
         getline(file, line);
 
-        if (line.empty())
+        if (line.empty() || line.compare("\r") == 0)
         {
             break;
         }

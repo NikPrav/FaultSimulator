@@ -33,16 +33,32 @@ void writeToFile(vector<float> coverageValues, string fileName)
 int main(int argc, char *argv[])
 {
     string netlistFile = argv[1];
-    string inputFile = argv[2];
-    string outputFile = argv[3];
-    int isRandom = stoi(argv[4]);
-    int isFaultFile = stoi(argv[5]);
+    string inputFile;
+    string outputFile;
+    int isPodem = stoi(argv[2]);
+    int isRandom = 0;
+    int isFaultFile = 0;
     string faultFile;
 
-    if (isFaultFile)
-        faultFile = argv[6];
+    if (!isPodem)
+    {
+        inputFile = argv[3];
+        outputFile = argv[4];
+        isRandom = stoi(argv[5]);
+        isFaultFile = stoi(argv[6]);
+    }
+    else
+    {
+        cout << "isPodem\n";
+        faultFile = argv[3];
+        // isRandom = stoi(argv[5]);
+        // isFaultFile = stoi(argv[6]);
+    }
 
-    std::cout << "Reading file:" << netlistFile << "\n";
+    if (isFaultFile)
+        faultFile = argv[7];
+
+    std::cout << "Reading file: " << netlistFile << "\n";
 
     vector<signalNode> signals;
     vector<gateNode> gates;
@@ -65,6 +81,36 @@ int main(int argc, char *argv[])
 
     definedSignals = inputSignals;
 
+    bool podemRun = isPodem;
+    set<int> Dfrontier;
+    // Total Possible faults
+    set<string> totalFaults;
+    if (podemRun)
+    {
+        cout << "Reading faultlists: " << faultFile << endl;
+        readFaultlist(faultFile, totalFaults);
+        for (set<string>::iterator it = totalFaults.begin(); it != totalFaults.end(); ++it)
+        {
+            string fault = *it;
+            string sa = to_string(fault.back() - '0');
+            fault.pop_back();
+            initialiseSignals(signals);
+            bool isPODEMSuccess = PODEM(stoi(fault), stoi(sa), gates, signals, inputSignals, outputSignals, Dfrontier);
+
+            if (isPODEMSuccess)
+            {
+                cout << "For fault " << stoi(fault) + 1 << " stuck at " << sa << " the test vector is:";
+                printTestVector(gates, signals, inputSignals);
+            }
+            else
+            {
+                cout << "For fault " << stoi(fault) + 1 << " stuck at " << sa << " test vector is not present \n";
+            }
+        }
+
+        return (0);
+    }
+
     // Reading inputs
     if (!isRandom)
     {
@@ -76,17 +122,6 @@ int main(int argc, char *argv[])
     set<string> coveredFaults;
     // set<string> validFaults;
     // set<string> totalValidFaults;
-
-    bool podemRun = true;
-    set<int> Dfrontier;
-    if (podemRun){
-        initialiseSignals(signals);
-        PODEM(8, 0, gates, signals, inputSignals, outputSignals, Dfrontier);
-        return (0);
-    }
-
-    // Total Possible faults
-    set<string> totalFaults;
 
     if (isFaultFile)
         readFaultlist(faultFile, totalFaults);
@@ -171,7 +206,6 @@ int main(int argc, char *argv[])
         // Check what all faults in defined faults are covered
         // set_intersection(coveredFaults.begin(), coveredFaults.end(), totalFaults.begin(), totalFaults.end(), inserter(validFaults, validFaults.end()));
 
-
         if (!isRandom)
         {
             std::cout << "For input " << inputString[i] << "\n";
@@ -183,8 +217,6 @@ int main(int argc, char *argv[])
         totalCoveredFaults.insert(coveredFaults.begin(), coveredFaults.end());
         outputString.push_back(output);
         coveredFaults.clear();
-
-        
 
         if (isRandom)
         {

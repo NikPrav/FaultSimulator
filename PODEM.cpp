@@ -11,14 +11,16 @@
 
 #include "gateList.h"
 
-void Objective(int faultAt, int faultValue, int &signal, int &value, vector<gateNode> &gates, vector<signalNode> &signals, set<int> Dfrontier)
+bool Objective(int faultAt, int faultValue, int &signal, int &value, vector<gateNode> &gates, vector<signalNode> &signals, set<int> Dfrontier)
 {
     if (signals[faultAt].op == logicX)
     {
         signal = faultAt;
         value = logicNOT[faultValue];
-        return;
+        return true;
     }
+
+    // bool valAssigned = false;
 
     for (auto iter : Dfrontier)
     {
@@ -26,15 +28,19 @@ void Objective(int faultAt, int faultValue, int &signal, int &value, vector<gate
         {
             signal = gates[iter].ip1;
             value = !logicControl[gates[iter].gateType];
-            return;
+            // valAssigned = true;
+            return true;
         }
         else if (signals[gates[iter].ip2].op == logicX)
         {
             signal = gates[iter].ip2;
             value = !logicControl[gates[iter].gateType];
-            return;
+            // valAssigned = true;
+            return true;
         }
     }
+
+    return false;
 }
 
 void Backtrace(int &signal, int &value, vector<gateNode> &gates, vector<signalNode> &signals, vector<int> inputSignals)
@@ -68,7 +74,7 @@ void Backtrace(int &signal, int &value, vector<gateNode> &gates, vector<signalNo
 
 void initialiseSignals(vector<signalNode> &signals)
 {
-    for (auto signal : signals)
+    for (auto &signal : signals)
     {
         signal.op = logicX;
     }
@@ -77,23 +83,34 @@ void initialiseSignals(vector<signalNode> &signals)
 void addToDFrontier(vector<gateNode> &gates, vector<signalNode> &signals, set<int> &Dfrontier)
 {
     int i = 0;
+
+    set<int>::iterator itr;
     // Check if any gate is no longer a D-Frontier
-    for (auto it : Dfrontier)
+    vector<int> removeValues;
+    for (itr = Dfrontier.begin(); itr != Dfrontier.end(); itr++)
     {
-        if (signals[gates[i].op].op != logicX)
+        if (signals[gates[*itr].op].op != logicX)
         {
-            Dfrontier.erase(it);
+            removeValues.push_back(*itr);
         }
+    }
+
+    for (auto it : removeValues)
+    {
+        Dfrontier.erase(it);
     }
 
     // Add new gates to DFrontier
     for (auto gate : gates)
     {
-        if (signals[gate.op].op == logicX)
+        if (gate.gateType != INV && gate.gateType != BUF)
         {
-            if (signals[gate.ip1].op == logicD || signals[gate.ip2].op == logicD || signals[gate.ip1].op == logicDbar || signals[gate.ip2].op == logicDbar)
+            if (signals[gate.op].op == logicX)
             {
-                Dfrontier.insert(i);
+                if (signals[gate.ip1].op == logicD || signals[gate.ip2].op == logicD || signals[gate.ip1].op == logicDbar || signals[gate.ip2].op == logicDbar)
+                {
+                    Dfrontier.insert(i);
+                }
             }
         }
         i++;
@@ -164,7 +181,7 @@ void addToStackPODEM(vector<int> &inputSignals, vector<int> &gateStack, vector<g
         case INV:
         case BUF:
         case NOT:
-            
+
             // Check for ip1
             if (find(inputSignals.begin(), inputSignals.end(), gates[i].ip1) != inputSignals.end())
             {
@@ -176,8 +193,8 @@ void addToStackPODEM(vector<int> &inputSignals, vector<int> &gateStack, vector<g
         default:
             // Chec for both ip1 and ip2
             auto iter1 = std::find(inputSignals.begin(), inputSignals.end(), gates[i].ip1);
-            auto iter2 = std::find(inputSignals.begin(), inputSignals.end(), gates[i].ip2); 
-            if (( iter1 != inputSignals.end()))
+            auto iter2 = std::find(inputSignals.begin(), inputSignals.end(), gates[i].ip2);
+            if ((iter1 != inputSignals.end()))
             {
 
                 gateStack.push_back(i);
@@ -196,10 +213,14 @@ void addToStackPODEM(vector<int> &inputSignals, vector<int> &gateStack, vector<g
 
 void Imply(int signal, int value, vector<gateNode> &gates, vector<signalNode> &signals, set<int> &Dfrontier, int faultAt, int faultValue)
 {
-    vector<int> definedSignals;
-    string input = to_string(value);
+    vector<int> definedSignals;    
     vector<int> inputSignals(1, signal);
     set<string> totalFaults;
+
+    if (signal == faultAt){
+        value = 3 - value;
+    }
+    string input = to_string(value);
 
     vector<int> gateStack, evaluatedGates;
 
@@ -246,9 +267,11 @@ bool PODEM(int faultAt, int faultValue, vector<gateNode> &gates, vector<signalNo
 
     bool fail = true;
 
+    bool pathCheck;
+
     for (auto opSignals : outputSignals)
     {
-        if (signals[opSignals].op == logicD)
+        if (signals[opSignals].op == logicD || signals[opSignals].op == logicDbar)
         {
             // Podem Success, fault propogated to output
             return true;
@@ -267,7 +290,12 @@ bool PODEM(int faultAt, int faultValue, vector<gateNode> &gates, vector<signalNo
     }
 
     // // Finding value to be set
-    Objective(faultAt, faultValue, k, v_k, gates, signals, Dfrontier);
+    pathCheck = Objective(faultAt, faultValue, k, v_k, gates, signals, Dfrontier);
+
+    if (!pathCheck)
+    {
+        return false;
+    }
 
     // // Tracing back to primary input
     Backtrace(k, v_k, gates, signals, inputSignals);
@@ -289,4 +317,16 @@ bool PODEM(int faultAt, int faultValue, vector<gateNode> &gates, vector<signalNo
     Imply(k, logicX, gates, signals, Dfrontier, faultAt, faultValue);
 
     return false;
+}
+
+void printTestVector(vector<gateNode> gates, vector<signalNode> signals, vector<int> inputSignals)
+{
+    string testVector = "";
+    string convToSignal[5] = {"0", "1", "1", "0", "X"};
+    for (auto signal : inputSignals)
+    {
+        testVector += convToSignal[signals[signal].op];
+    }
+
+    std::cout << testVector << std::endl;
 }

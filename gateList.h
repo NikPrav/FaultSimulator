@@ -28,10 +28,10 @@ enum gateTypes
     OR,
     NAND,
     NOR,
+    BUF,
     NOT,
     XOR,
     XNOR,
-    BUF,
     INPUT,
     OUTPUT
 };

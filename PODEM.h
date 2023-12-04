@@ -23,3 +23,7 @@ void Backtrace(int &signal, int &value, vector<gateNode> &gates, vector<signalNo
 void Imply(int signal, int value, vector<gateNode> &gates, vector<signalNode> &signals, set<int> &Dfrontier);
 
 void initialiseSignals(vector<signalNode> &signals);
+
+void addToDFrontier(vector<gateNode> &gates, vector<signalNode> &signals, set<int> &Dfrontier); 
+
+void printTestVector(vector<gateNode> gates, vector<signalNode> signals, vector<int> inputSignals);
